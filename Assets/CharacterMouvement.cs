@@ -13,7 +13,14 @@ public class CharacterMouvement : MonoBehaviour
     public float M_Speed;
     public bool M_CanMove;
     public Vector3 M_Navigation;
-
+    public PointLook LookAt;
+    /*public Vector3 DebugVec;
+    public GameObject Test;
+    public GameObject Test2;*/
+    void Start()
+    {
+        M_Navigation = new Vector3(transform.position.x,0,transform.position.z);
+    }
 
     // Update is called once per frame
     void Update()
@@ -28,30 +35,56 @@ public class CharacterMouvement : MonoBehaviour
         Movement(Move);*/
 
         //Leauge of Puanteur//
-
         if (Input.GetMouseButtonDown(0))
         {
             SetNavigation(M_Point.transform.position);
         }
-        CalculateMovement(M_Navigation,M_Speed);
-        
+        Movement(CalculateMovement(M_Navigation,M_Speed));
+        LookAt.LookAt = M_Navigation;
     }
 
-    public void CalculateMovement(Vector3 Point,float Speed)
+    public Vector3 CalculateMovement(Vector3 Point,float Speed)
     {
+        Vector3 Direction = (new Vector3(M_Navigation.x, 0, M_Navigation.z) - new Vector3(transform.position.x, 0, transform.position.z)).normalized;
+        Vector3 VectorV = Direction * M_Speed * Time.deltaTime;
+        if(NextStepTooFar(transform.position, VectorV, M_Navigation))
+        {
+            Debug.Log("Stop");
+            return Vector3.zero;
+        }else
+        {
+            return VectorV;
+        }
+    }
 
+    public bool NextStepTooFar(Vector3 Position, Vector3 NextStep,Vector3 Point)
+    {
+        Position.y = 0;
+        NextStep.y = 0;
+        Point.y = 0;
+        if(Vector3.Distance(Position,Position + NextStep) > Vector3.Distance(Position,Point))
+        {
+            return true;
+        }else
+        {
+            return false;
+        }
+        
     }
 
     public void SetNavigation(Vector3 Point)
     {
-
+        M_Navigation = Point;
     }
 
     public void Movement(Vector3 Move)
     {
         if(M_CanMove)
         {
-        Controller.Move(Move);
+            if(Move!=Vector3.zero)
+            {
+                Controller.Move(Move);
+            }
         }
     }
 
