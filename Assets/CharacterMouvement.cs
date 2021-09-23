@@ -6,7 +6,12 @@ public class CharacterMouvement : MonoBehaviour
 {
     // Start is called before the first frame update
     public CharacterController Controller;
-    
+    public CharacterState State;
+
+    [Header("Attack")]
+    public bool Attacking;
+    public float AtkSpeed;
+    public AttackScript AttackScript;
 
     [Header("Mouvement ")]
     public GameObject M_Point;
@@ -17,6 +22,9 @@ public class CharacterMouvement : MonoBehaviour
     /*public Vector3 DebugVec;
     public GameObject Test;
     public GameObject Test2;*/
+    [Header("Animation")]
+    public Animator Anim;
+    public Vector3 CharacterMovement;
     void Start()
     {
         M_Navigation = new Vector3(transform.position.x,0,transform.position.z);
@@ -35,14 +43,23 @@ public class CharacterMouvement : MonoBehaviour
         Movement(Move);*/
 
         //Leauge of Puanteur//
-        if (Input.GetMouseButtonDown(0))
+
+        if (Input.GetMouseButtonDown(1) ||Input.GetMouseButton(1) && State==CharacterMouvement.CharacterState.IDLERUN)
         {
             SetNavigation(M_Point.transform.position);
         }
         Movement(CalculateMovement(M_Navigation,M_Speed));
         LookAt.LookAt = M_Navigation;
+        ProcessAnimation();
     }
 
+    //Movement//
+
+    public IEnumerator ResetNavigation()
+    {
+        yield return new WaitForEndOfFrame();
+        M_Navigation = transform.position;
+    }
     public Vector3 CalculateMovement(Vector3 Point,float Speed)
     {
         Vector3 Direction = (new Vector3(M_Navigation.x, 0, M_Navigation.z) - new Vector3(transform.position.x, 0, transform.position.z)).normalized;
@@ -85,15 +102,69 @@ public class CharacterMouvement : MonoBehaviour
             {
                 Controller.Move(Move);
             }
+            SetCharacterMovement(Move);
         }
     }
 
-    public IEnumerator Attack(float Delay,GameObject Target)
+    public void SetState()
+    {
+        if(State == CharacterState.IDLERUN)
+        {
+            M_CanMove = true;
+            Attacking = false;
+        }
+        if(State == CharacterState.ATTACKING)
+        {
+            Attacking = true;
+            M_CanMove = false;
+        }
+    }
+
+    //Movement//
+
+    //Animation//
+
+    public void ProcessAnimation()
+    {
+        //Attack
+        if(State == CharacterState.ATTACKING)
+        {
+
+        }
+        //Run && Idle//
+        if(State == CharacterState.IDLERUN)
+        {
+            if(CharacterMovement!=Vector3.zero)
+            {
+                Anim.speed = 1.0f;
+                Anim.SetBool("Running", true);
+            }else
+            {
+                Anim.speed = 1.0f;
+                Anim.SetBool("Running", false);
+            }
+        }
+    }
+
+    public void SetCharacterMovement(Vector3 Movement)
+    {
+        CharacterMovement = Movement;
+    }
+
+    //Attack//
+    /*public IEnumerator Attack(float Delay, GameObject Target)
     {
         M_CanMove = false;
         yield return new WaitForSeconds(Delay);
         //CREATE BULLET WITH TARGET //
         Debug.Log("Create Bullet at " + Target.name);
         M_CanMove = true;
+    }*/
+
+    public enum CharacterState
+    {
+        NULL,
+        IDLERUN,
+        ATTACKING,
     }
 }

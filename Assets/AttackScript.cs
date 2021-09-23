@@ -10,25 +10,43 @@ public class AttackScript : MonoBehaviour
     public float AttackLock;
     public Cooldown AtkSpeed;
     public GameObject Projectile;
-    void Start()
-    {
-        
-    }
-
+    public GameObject Socket;
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButtonDown(1) && !Controller.Attacking && CheckTarget())
         {
             SelectEnnemy();
+            
+            Controller.Anim.SetTrigger("Attacking");
+            Controller.Anim.speed = 10.0f;
+            Controller.State = CharacterMouvement.CharacterState.ATTACKING;
+            Controller.SetState();
+            StartCoroutine(Controller.ResetNavigation());
         }
 
-        if(AtkSpeed.Clock>0)
+        if (AtkSpeed.Clock>0)
         { 
             AtkSpeed.Clock -= Time.deltaTime;
         }
     }
 
+    public bool CheckTarget()
+    {
+        RaycastHit hit;
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        if (Physics.Raycast(ray, out hit))
+        {
+            if (hit.collider.CompareTag("Targetable"))
+            {
+                return true;
+            }else
+            {
+                return false;
+            }
+        }
+        return false;
+    }
     public void SelectEnnemy()
     {
         RaycastHit hit;
@@ -38,13 +56,14 @@ public class AttackScript : MonoBehaviour
         {
             if(hit.collider.CompareTag("Targetable"))
             {
-                if(AtkSpeed.Clock<=0)
-                {
-                    AtkSpeed.Reset();
-                    StartCoroutine(Controller.Attack(AttackLock, hit.collider.gameObject.transform.parent.gameObject));
-                }
+                Controller.LookAt.PointLookAt = hit.collider.gameObject;  
             }
         }
+    }
+
+    public void CreateProjectile()
+    {
+        Instantiate(Projectile, Socket.transform.position, Socket.transform.rotation);
     }
 
     [System.Serializable]
