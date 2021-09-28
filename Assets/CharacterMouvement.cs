@@ -19,6 +19,8 @@ public class CharacterMouvement : MonoBehaviour
     public bool M_CanMove;
     public Vector3 M_Navigation;
     public PointLook LookAt;
+    public bool LockTarget;
+    public GameObject TargetLocked;
     /*public Vector3 DebugVec;
     public GameObject Test;
     public GameObject Test2;*/
@@ -44,9 +46,21 @@ public class CharacterMouvement : MonoBehaviour
 
         //Leauge of Puanteur//
 
-        if (Input.GetMouseButtonDown(1) ||Input.GetMouseButton(1) && State==CharacterMouvement.CharacterState.IDLERUN)
+        if (Input.GetMouseButtonDown(1) ||Input.GetMouseButton(1))
         {
-            SetNavigation(M_Point.transform.position);
+            
+            if(CheckEnnemy())
+            {
+                
+            }else
+            {
+                ResetTarget();
+                SetNavigation(M_Point.transform.position);
+            }
+        }
+        if(LockTarget)
+        {
+            SetNavigation(TargetLocked.transform.position);
         }
         Movement(CalculateMovement(M_Navigation,M_Speed));
         LookAt.LookAt = M_Navigation;
@@ -152,6 +166,17 @@ public class CharacterMouvement : MonoBehaviour
     }
 
     //Attack//
+    public void ResetTarget()
+    {
+        TargetLocked = null;
+        LockTarget = false;
+    }
+
+    public void SetTarget(GameObject Target)
+    {
+        TargetLocked = Target;
+        LockTarget = true;
+    }
     /*public IEnumerator Attack(float Delay, GameObject Target)
     {
         M_CanMove = false;
@@ -161,6 +186,26 @@ public class CharacterMouvement : MonoBehaviour
         M_CanMove = true;
     }*/
 
+
+    //Utilities//
+    public bool CheckEnnemy()
+    {
+        RaycastHit hit;
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        if (Physics.Raycast(ray, out hit))
+        {
+            if (hit.collider.CompareTag("Targetable"))
+            {
+                SetTarget(hit.collider.gameObject.transform.root.gameObject);
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        return false;
+    }
     public enum CharacterState
     {
         NULL,
